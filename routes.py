@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Path
 from typing import Annotated
 import schemas
 from schemas import fake_items_db, Item
@@ -27,7 +27,7 @@ async def read_current_user(user_id: int):
 # Exemplo de query parameters (skip e limit)
 @items_router.get("/")
 async def read_item(skip: int = 0, limit: int = 100):
-    return fake_items_db[skip: skip + limit]
+    return fake_items_db[skip : skip + limit]
 
 
 # Utilizando uma Query q como parametro opcional
@@ -41,10 +41,17 @@ async def alt_read_item(q: Annotated[str | None, Query(max_length=50)] = None):
     return fake_items_db
 
 
-@items_router.get("/{item_id}", tags=["items"])
-async def read_items(item_id: int):
+# Do mesmo modo que pode-se declarar parametros de validação,
+# pode-se fazer inclusao de metadata ou validacao numeral com o Path,
+# como no exemplo em que é declarado o title para item_id
+# e esse deve ser maior que 0 (ge=0)
+@items_router.get("/{item_id}")
+async def read_items(
+    item_id: Annotated[int, Path(title="A ID do item requisitado", ge=0)],
+):
     itemInDB = next(
-        (item for item in fake_items_db if item["item_id"] == item_id), False)
+        (item for item in fake_items_db if item["item_id"] == item_id), False
+    )
     if itemInDB:
         return itemInDB
     raise HTTPException(status_code=404, detail=("Item nao encontrado"))
