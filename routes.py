@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import schemas
+from schemas import fake_items_db, Item
+
 
 users_router = APIRouter()
 items_router = APIRouter()
@@ -20,25 +22,30 @@ async def read_current_user(user_id: int):
     return {"user_id": user_id}
 
 
-fake_items_db = [
-    {"item_id": 0, "item_name": "foo"},
-    {"item_id": 1, "item_name": "bar"},
-    {"item_id": 2, "item_name": "foobar"},
-]
-
-
 # Items routes
+# Exemplo de query parameters (skip e limit)
+# Aque q é um parametro opcional
 @items_router.get("/")
-async def read_item(skip: int = 0, limit: int = 100):
+async def read_item(skip: int = 0, limit: int = 100, q: int | None = None):
     return fake_items_db[skip: skip + limit]
 
 
 @items_router.get("/{item_id}", tags=["items"])
 async def read_items(item_id: int):
-    item = next((item for item in fake_items_db if item["item_id"] == item_id), False)
-    if item:
-        return item
+    itemInDB = next(
+        (item for item in fake_items_db if item["item_id"] == item_id), False)
+    if itemInDB:
+        return itemInDB
     raise HTTPException(status_code=404, detail=("Item nao encontrado"))
+
+
+@items_router.put("/{item_id}")
+async def update_item(item_id: int, item: Item):
+    for i in fake_items_db:
+        if i["item_id"] == item_id:
+            i["item"] = item
+            return i
+    return HTTPException(status_code=404, detail="Item não encontrado")
 
 
 # ModelName -> tests com enumerate
