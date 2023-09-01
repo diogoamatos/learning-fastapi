@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from typing import Annotated
 import schemas
 from schemas import fake_items_db, Item
 
@@ -24,10 +25,20 @@ async def read_current_user(user_id: int):
 
 # Items routes
 # Exemplo de query parameters (skip e limit)
-# Aque q é um parametro opcional
 @items_router.get("/")
-async def read_item(skip: int = 0, limit: int = 100, q: int | None = None):
+async def read_item(skip: int = 0, limit: int = 100):
     return fake_items_db[skip: skip + limit]
+
+
+# Utilizando uma Query q como parametro opcional
+# Annotated impoe a condição de que quando existir a query q tenha um tamanho
+# maximo de 50 caracteres
+# para deixar a query q necessaria remove-se o "| None" e "= None"
+@items_router.get("/alt")
+async def alt_read_item(q: Annotated[str | None, Query(max_length=50)] = None):
+    if q:
+        return {"data": "retorno com uma query q " + q}
+    return fake_items_db
 
 
 @items_router.get("/{item_id}", tags=["items"])
