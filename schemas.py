@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelName(str, Enum):
@@ -8,10 +8,14 @@ class ModelName(str, Enum):
     lenet = "lenet"
 
 
+# Assim como Query e Path, Field adiciona validaçao e metadata dentro dos
+# modelos do pydantic
 class Item(BaseModel):
     name: str
-    description: str | None = None
-    price: float
+    description: str | None = Field(
+        default=None, title="a descricao do item", max_length=300
+    )
+    price: float = Field(gt=0, description="o preco deve ser maior que zero")
 
 
 data1 = {
