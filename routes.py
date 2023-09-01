@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Path
+from fastapi import APIRouter, HTTPException, Query, Path, Body
 from typing import Annotated
 import schemas
 from schemas import fake_items_db, Item
@@ -57,13 +57,18 @@ async def read_items(
     raise HTTPException(status_code=404, detail=("Item nao encontrado"))
 
 
+# Utilizando Body(embed=True) FastAPI já aguarda um body sem uma chave
+# (item no componente 0 da lista fake_items_db) no caso nao e utilizado
+# aqui ja que a lista fake_items_db foi criada manualmente e já possui
+# a o par chave/valor {"item": Item} e é trocado apenas o valor de Item
 @items_router.put("/{item_id}")
-async def update_item(item_id: int, item: Item):
+async def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):
+    # async def update_item(item_id: int, item: Annotated[Item, Body(embed=True)]):
     for i in fake_items_db:
         if i["item_id"] == item_id:
             i["item"] = item
             return i
-    return HTTPException(status_code=404, detail="Item não encontrado")
+    raise HTTPException(status_code=404, detail="Item não encontrado")
 
 
 # ModelName -> tests com enumerate
