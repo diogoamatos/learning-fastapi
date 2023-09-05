@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Path, Body
+from fastapi import APIRouter, HTTPException, Query, Path, Body, Form
 from typing import Annotated
 import schemas
 from schemas import fake_items_db, Item
@@ -23,11 +23,22 @@ async def read_current_user(user_id: int):
     return {"user_id": user_id}
 
 
+# A utilizaçao de form é feita por meio de Annotated, tecnicamente o format
+# modifica a codificação para multipart/form-data
+@users_router.post("/login")
+async def login(
+    username: Annotated[str, Form()],
+    password: Annotated[str, Form()]
+):
+    return {"username": username}
+
+
+# ---------------------------------------------------------
 # Items routes
 # Exemplo de query parameters (skip e limit)
 @items_router.get("/")
 async def read_item(skip: int = 0, limit: int = 100):
-    return fake_items_db[skip : skip + limit]
+    return fake_items_db[skip: skip + limit]
 
 
 # Utilizando uma Query q como parametro opcional
